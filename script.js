@@ -226,7 +226,9 @@ function handleFormSubmit(event) {
     const phone = (formData.get("phone") || "").toString().trim();
     const game = (formData.get("game") || "выбранный формат").toString();
 
-    formStatus.textContent = `Запрос принят: ${name || "гость"}, формат "${game}". Менеджер клуба "Триумф" свяжется с вами по номеру ${phone}.`;
+    formStatus.textContent = name
+        ? `${name}, заявка принята. Менеджер клуба «Триумф» свяжется с вами по номеру ${phone} и подтвердит бронь на формат «${game}».`
+        : `Заявка принята. Менеджер клуба «Триумф» свяжется с вами по номеру ${phone} и подтвердит бронь на формат «${game}».`;
     bookingForm.reset();
 }
 
