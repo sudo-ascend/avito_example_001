@@ -577,8 +577,7 @@ img {
     backdrop-filter: blur(16px);
     color: var(--muted);
     font-size: 0.78rem;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
+    letter-spacing: 0.08em;
     z-index: 2;
 }
 
@@ -1046,6 +1045,12 @@ img {
     color: var(--muted);
 }
 
+.pricing-caption {
+    margin: 16px 0 0;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
 .pricing-list {
     list-style: none;
     padding: 0;
@@ -1070,6 +1075,10 @@ img {
     height: 8px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+}
+
+.price-book {
+    width: 100%;
 }
 
 .pricing-note {
@@ -1288,6 +1297,36 @@ img {
     font-size: 2rem;
 }
 
+.booking-lead {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.75;
+}
+
+.booking-points {
+    display: grid;
+    gap: 10px;
+    margin: 4px 0 6px;
+}
+
+.booking-points p {
+    position: relative;
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.6;
+}
+
+.booking-points p::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(208, 171, 99, 0.75);
+}
+
 .booking-form label {
     display: grid;
     gap: 10px;
@@ -1336,6 +1375,12 @@ img {
     min-height: 24px;
     margin: 2px 0 0;
     line-height: 1.65;
+}
+
+.booking-footnote {
+    margin: -2px 0 0;
+    color: var(--muted);
+    line-height: 1.6;
 }
 
 .footer {
