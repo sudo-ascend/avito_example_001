@@ -7,7 +7,6 @@ const scrollLinks = document.querySelectorAll("[data-scroll]");
 const revealItems = document.querySelectorAll("[data-reveal]");
 const sections = document.querySelectorAll("section[id]");
 const navLinks = document.querySelectorAll(".nav a");
-const stage = document.querySelector(".hero-stage");
 const stageCard = document.querySelector(".stage-card");
 const priceButtons = document.querySelectorAll(".price-book");
 const gameSelect = document.getElementById("gameType");
@@ -22,12 +21,8 @@ const reviewDots = document.querySelector(".review-dots");
 let currentReview = 0;
 let reviewTimer = null;
 
-function setPointerGlow(event) {
-    const x = `${(event.clientX / window.innerWidth) * 100}%`;
-    const y = `${(event.clientY / window.innerHeight) * 100}%`;
-
-    document.documentElement.style.setProperty("--pointer-x", x);
-    document.documentElement.style.setProperty("--pointer-y", y);
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
 }
 
 function updateTopbar() {
@@ -109,21 +104,88 @@ function activateNav() {
 }
 
 function addStageParallax() {
-    if (!stage || !stageCard || prefersReducedMotion) {
+    if (!stageCard || prefersReducedMotion || !window.matchMedia("(hover: hover)").matches) {
         return;
     }
 
-    stage.addEventListener("mousemove", (event) => {
-        const rect = stage.getBoundingClientRect();
-        const rotateY = ((event.clientX - rect.left) / rect.width - 0.5) * 10;
-        const rotateX = ((event.clientY - rect.top) / rect.height - 0.5) * -10;
+    const maxRotateX = 4.5;
+    const maxRotateY = 5.5;
+    const maxLift = -4;
 
-        stageCard.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
-    });
+    let currentRotateX = 0;
+    let currentRotateY = 0;
+    let currentLift = 0;
+    let targetRotateX = 0;
+    let targetRotateY = 0;
+    let targetLift = 0;
+    let frameId = 0;
 
-    stage.addEventListener("mouseleave", () => {
-        stageCard.style.transform = "";
-    });
+    function renderStageTilt() {
+        currentRotateX += (targetRotateX - currentRotateX) * 0.16;
+        currentRotateY += (targetRotateY - currentRotateY) * 0.16;
+        currentLift += (targetLift - currentLift) * 0.18;
+
+        const isResting = Math.abs(currentRotateX - targetRotateX) < 0.02
+            && Math.abs(currentRotateY - targetRotateY) < 0.02
+            && Math.abs(currentLift - targetLift) < 0.02;
+
+        if (isResting) {
+            currentRotateX = targetRotateX;
+            currentRotateY = targetRotateY;
+            currentLift = targetLift;
+        }
+
+        if (currentRotateX === 0 && currentRotateY === 0 && currentLift === 0) {
+            stageCard.style.transform = "";
+            frameId = 0;
+            return;
+        }
+
+        stageCard.style.transform = `perspective(1200px) rotateX(${currentRotateX.toFixed(2)}deg) rotateY(${currentRotateY.toFixed(2)}deg) translateY(${currentLift.toFixed(2)}px)`;
+        frameId = isResting ? 0 : window.requestAnimationFrame(renderStageTilt);
+    }
+
+    function queueTiltRender() {
+        if (!frameId) {
+            frameId = window.requestAnimationFrame(renderStageTilt);
+        }
+    }
+
+    function updateStageTilt(clientX, clientY) {
+        const rect = stageCard.getBoundingClientRect();
+        const offsetX = clamp(((clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
+        const offsetY = clamp(((clientY - rect.top) / rect.height) * 2 - 1, -1, 1);
+
+        targetRotateY = offsetX * maxRotateY;
+        targetRotateX = offsetY * -maxRotateX;
+        targetLift = maxLift;
+        queueTiltRender();
+    }
+
+    function resetStageTilt() {
+        targetRotateX = 0;
+        targetRotateY = 0;
+        targetLift = 0;
+        queueTiltRender();
+    }
+
+    stageCard.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "touch") {
+            return;
+        }
+
+        updateStageTilt(event.clientX, event.clientY);
+    }, { passive: true });
+
+    stageCard.addEventListener("pointermove", (event) => {
+        if (event.pointerType === "touch") {
+            return;
+        }
+
+        updateStageTilt(event.clientX, event.clientY);
+    }, { passive: true });
+
+    stageCard.addEventListener("pointerleave", resetStageTilt);
 }
 
 function setTariff(plan) {
@@ -233,7 +295,6 @@ function handleFormSubmit(event) {
 }
 
 window.addEventListener("scroll", updateTopbar, { passive: true });
-window.addEventListener("mousemove", setPointerGlow, { passive: true });
 updateTopbar();
 revealOnScroll();
 activateNav();
